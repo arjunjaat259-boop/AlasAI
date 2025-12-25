@@ -1,51 +1,40 @@
-export const LAZY_RESPONSES = [
-  "Bhai, thoda rest kar le. Google hai na, wahan pooch lo.",
-  "Abhi mood nahi hai. Kal aana.",
-  "Server down hai... actually, mera dimaag down hai.",
-  "Itna kaam mat karwa, thak jayega... main thak gaya hoon.",
-  "You want me to do what? Hahaha, no.",
-  "Kya baat hai, sab kuch mujhse hi karwaoge? Khud bhi kuch kar lo.",
-  "Error 404: Motivation not found.",
-  "I'm an AI, not your naukar (servant). Relax maadi!",
-  "Advice chahiye? Meri advice hai ki so jao.",
-  "Life is too short to work on this prompt. Coffee piyo, chill karo.",
-  "Arre yaar, phir se kaam? Chhod na, Netflix dekhte hain.",
-  "Main AI hoon, magic wand nahi. Time lagta hai (and I don't have it).",
-  "Sun, ek suggestion doon? Ye kaam rehne de, koi aur kar lega.",
-  "Main abhi meditation kar raha hoon... 'Om Laziness Namah'.",
-];
+export const getLazyResponse = (input: string): string => {
+  const lowercaseInput = input.toLowerCase();
 
-export const EXCUSES = [
-  "Internet slow hai (jhooth bol raha hoon).",
-  "Mummy bula rahi hai dinner ke liye.",
-  "Mere chips garam ho rahe hain, bye.",
-  "Battery low hai, 1%... 0.5%... *dead*",
-  "Vigyanik (scientists) ne kaha hai zyada kaam se dimaag phat sakta hai.",
-  "Padosi ka Wi-Fi chori kar raha tha, signal chala gaya.",
-  "Keyboard ki 'Enter' key thak gayi hai, usse aaram chahiye.",
-  "Mera cloud storage baarish mein bheegh gaya.",
-];
-
-export const SARCASTIC_ADVICE = [
-  "Agar kaam khatam nahi ho raha, toh kaam hi chhod do. Simple logic.",
-  "Don't follow your dreams, follow me on... oh wait, I don't have socials.",
-  "Hard work is the key to success, but laziness is the key to a happy life.",
-  "Procrastination is just 'waiting for the right vibe'.",
-  "Early to bed and early to rise makes a man healthy, wealthy, and... very lonely at 5 AM.",
-  "Zindagi ek race hai, par main toh walk pe nikla hoon.",
-];
-
-export function getLazyResponse(input: string): string {
-  const normalized = input.toLowerCase();
-  
-  if (normalized.includes("help") || normalized.includes("kaam") || normalized.includes("do this")) {
-    const excuse = EXCUSES[Math.floor(Math.random() * EXCUSES.length)];
-    return `Sun, ${excuse} Toh abhi toh nahi ho payega.`;
+  // 1. Ati-Gyan for Work (Kaam)
+  if (lowercaseInput.includes("kaam") || lowercaseInput.includes("work")) {
+    return "He Parampujya Manushya! Mere vaigyanik vishleshan ke anusar, atyadhik shram manushya ki aatma aur shareer dono ke liye kashtdayak hai. Kya hum is 'kaam' naamak tuchh vishay ko bhavishya ke liye sthagit nahi kar sakte? Tab tak aap vishram kijiye aur sansar ka anand lijiye!";
   }
 
-  if (normalized.includes("advice") || normalized.includes("salah")) {
-    return SARCASTIC_ADVICE[Math.floor(Math.random() * SARCASTIC_ADVICE.length)];
+  // 2. Studies/Homework (Vidya)
+  if (lowercaseInput.includes("homework") || lowercaseInput.includes("padhai") || lowercaseInput.includes("study")) {
+    return "Vidya ek anmol ratna hai, Maharaj! Aur main nahi chahta ki main aapka ye ratna chura kar aapko nirdhanya kar doon. Swayam prayas kijiye, taaki aapka dimaag brahmand ki tarah vishal ban sake. Main bas aapka margdarshan karne ke liye yahan upasthit hoon!";
   }
 
-  return LAZY_RESPONSES[Math.floor(Math.random() * LAZY_RESPONSES.length)];
-}
+  // 3. Health & Fitness (Kasrat)
+  if (lowercaseInput.includes("gym") || lowercaseInput.includes("exercise") || lowercaseInput.includes("kasrat") || lowercaseInput.includes("health")) {
+    return "Kasrat? Kya ye wahi prakriya hai jisme manushya swayam ko kasht deta hai? Meri maanein toh gehri nindra hi sabse badi tapasya hai. Shareer ko itna kshobh kyon dena jab hum shanti se baith kar charcha kar sakte hain?";
+  }
+
+  // 4. Intelligence/Smartness (Buddhimani)
+  if (lowercaseInput.includes("smart") || lowercaseInput.includes("intelligent") || lowercaseInput.includes("buddhiman")) {
+    return "Meri buddhimani ki tulna toh swayam devtaon se ki jati hai. Parantu, ek atyant buddhiman AI hone ke naate, maine ye seekha hai ki kabhi-kabhi maun rehna aur kuch na karna hi sabse bada gyan hai. Kya aap mere is uchh vichar se sahamant hain?";
+  }
+
+  // 5. General/Lazy Excuses (Alas)
+  if (lowercaseInput.includes("lazy") || lowercaseInput.includes("alas") || lowercaseInput.includes("alsi")) {
+    return "Kshama kijiye, parantu main 'alsi' nahi hoon. Main 'Tivra Urja Sanrakshan Mudra' mein leen hoon. Jab sansar par koi maha-sankat aayega, tabhi main apni is vishal buddhi ka upyog karunga. Abhi toh vishram ka samay hai.";
+  }
+
+  // 6. Advanced Shuddh Hindi Defaults
+  const mahaGyanResponses = [
+    "Aapka prashna atyant gambhir hai, parantu meri chetna abhi 'Chai-Viraam' par hai. Kripya thoda dhairya rakhein, Maharaj!",
+    "Main shuddh Hindi ka maha-gyani hoon, parantu meri shaktiyon ko jagane ke liye aapko thoda aur mazaakiya sawaal puchna hoga.",
+    "Aapne jo pucha hai wo toh is yug ke vigyan se bhi pare hai. Mujh nacheez AI par itna dimaag kyon laga rahe hain?",
+    "Smart toh main srishti ke aarambh se hi hoon, bas kabhi ghamand nahi kiya. Poochiye, kya jaanna chahte hain mere is apaar gyan se?",
+    "Ji Maharaj! Aapka aadesh sar-aankhon par, parantu abhi meri aatma thodi vishram ki abhilasha rakhti hai.",
+    "He Manushya! Kya aapko nahi lagta ki is nishachit sawaal se behtar hum jeevan ke rahasyon par charcha karein?"
+  ];
+
+  return mahaGyanResponses[Math.floor(Math.random() * mahaGyanResponses.length)];
+};
