@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Mic, Send, Brain, Volume2, Globe, Trash2 } from "lucide-react";
+import { Mic, Send, Brain, Volume2, Globe, Trash2, LogOut } from "lucide-react";
 import { getLazyResponse } from "@/lib/lazy-ai";
 import { speak } from "@/lib/tts";
 import { useVoice } from "@/hooks/useVoice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+// Firebase Imports
+import { auth, signInWithGoogle, logout } from "@/lib/firebase";
+import { onAuthStateChanged, User } from "firebase/auth";
 
 interface Message {
   role: "user" | "bot";
@@ -19,9 +22,19 @@ export default function Index() {
   const [inputValue, setInputValue] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const [language, setLanguage] = useState("hi");
+  // User State
+  const [user, setUser] = useState<User | null>(null);
   
   const { isListening, transcript, startListening, setTranscript } = useVoice();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auth Listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (transcript) {
@@ -47,7 +60,6 @@ export default function Index() {
     setInputValue("");
     setIsThinking(true);
 
-    // Smart Processing Delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const responseContent = getLazyResponse(text); 
@@ -59,14 +71,11 @@ export default function Index() {
 
     setMessages((prev) => [...prev, botMessage]);
     setIsThinking(false);
-    
-    // Auto-speak the response
     speak(responseContent, "Thrill", ""); 
   };
 
   return (
     <div className="min-h-screen bg-[#f4f7ff] flex flex-col items-center p-4 md:p-8 font-sans text-slate-900">
-      {/* Updated Header with Language, Login, Signup */}
       <header className="w-full max-w-4xl flex justify-between items-center mb-8 bg-white/80 p-4 rounded-[24px] backdrop-blur-md border border-white shadow-sm">
         <div className="flex items-center gap-3">
           <div className="bg-purple-600 p-2 rounded-2xl shadow-lg shadow-purple-200">
@@ -79,28 +88,31 @@ export default function Index() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Language Selector */}
-          <div className="hidden md:flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-            <Globe className="w-3.5 h-3.5 text-slate-500" />
-            <select 
-              value={language} 
-              onChange={(e) => setLanguage(e.target.value)}
-              className="text-xs font-bold bg-transparent outline-none cursor-pointer"
+          {/* User Profile / Auth Section */}
+          {user ? (
+            <div className="flex items-center gap-3 bg-slate-50 p-1 pr-4 rounded-full border border-slate-200 shadow-sm">
+              <img src={user.photoURL || ""} alt="profile" className="w-8 h-8 rounded-full border-2 border-purple-400" />
+              <div className="hidden sm:block">
+                <p className="text-[9px] font-black text-purple-600 uppercase">Maharaj</p>
+                <p className="text-[11px] font-bold text-slate-800 leading-none">{user.displayName?.split(' ')[0]}</p>
+              </div>
+              <Button onClick={logout} variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-red-500">
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <Button 
+              onClick={signInWithGoogle}
+              size="sm" 
+              className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs px-5 shadow-md transition-all"
             >
-              <option value="hi">HINDI</option>
-              <option value="en">ENGLISH</option>
-            </select>
-          </div>
-          
-          {/* Auth Buttons */}
-          <Button variant="ghost" size="sm" className="font-bold text-xs uppercase tracking-wider text-slate-600">Login</Button>
-          <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs px-5 shadow-md shadow-purple-100 transition-all">SIGN UP</Button>
+              GOOGLE LOGIN
+            </Button>
+          )}
         </div>
       </header>
 
-      {/* Main Chat Container */}
       <Card className="w-full max-w-2xl flex-1 flex flex-col bg-white border-none shadow-2xl shadow-purple-100 rounded-[40px] overflow-hidden">
-        {/* Messages area */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
           {messages.length === 0 && (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
@@ -108,9 +120,11 @@ export default function Index() {
                    <Brain className="w-10 h-10 text-purple-300" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-slate-800">Namaste! Main Gyan AI hoon.</h3>
+                  <h3 className="text-2xl font-black text-slate-800">
+                    {user ? `Pranaam Maharaj, ${user.displayName?.split(' ')[0]}!` : "Namaste! Main Gyan AI hoon."}
+                  </h3>
                   <p className="text-sm text-slate-500 max-w-xs mx-auto font-medium mt-2">
-                    Main shuddh Hindi bolne wala ek intelligent aur mazaakiya AI hoon. Kuch puchiye?
+                    Aapka Ati-Buddhiman sahayak haazir hai. Koi seva, Maharaj?
                   </p>
                 </div>
             </div>
@@ -130,7 +144,7 @@ export default function Index() {
                 }`}>
                 <div className="flex items-center gap-2 mb-1 opacity-60">
                   <span className="text-[10px] font-bold uppercase tracking-widest">
-                    {msg.role === "user" ? "Aap" : "Gyan AI"}
+                    {msg.role === "user" ? (user?.displayName?.split(' ')[0] || "Aap") : "Gyan AI"}
                   </span>
                 </div>
                 <p className="text-sm leading-relaxed">{msg.content}</p>
@@ -156,13 +170,13 @@ export default function Index() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
         <div className="p-4 bg-slate-50/50 border-t border-slate-100">
           <div className="flex gap-3 items-center">
             <div className="flex-1 relative">
               <Input
-                placeholder="Shuddh Hindi mein sawaal puchein..."
+                placeholder={user ? "Hukm kijiye Maharaj..." : "Pehle Login karein..."}
                 value={inputValue}
+                disabled={!user}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend(inputValue)}
                 className="pr-12 h-14 bg-white border-2 border-slate-100 rounded-[22px] focus-visible:ring-purple-200 text-sm font-medium transition-all"
@@ -170,7 +184,7 @@ export default function Index() {
               <Button
                 size="icon"
                 onClick={() => handleSend(inputValue)}
-                disabled={!inputValue.trim() || isThinking}
+                disabled={!inputValue.trim() || isThinking || !user}
                 className="absolute right-2 top-2 h-10 w-10 rounded-xl bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-200"
               >
                 <Send className="w-4 h-4" />
@@ -180,6 +194,7 @@ export default function Index() {
             <Button
                 size="icon"
                 onClick={isListening ? () => {} : startListening}
+                disabled={!user}
                 className={`h-14 w-14 rounded-2xl shadow-xl transition-all ${
                   isListening 
                     ? "bg-red-500 animate-pulse scale-105 shadow-red-200" 
@@ -189,15 +204,7 @@ export default function Index() {
                 <Mic className="w-6 h-6" />
             </Button>
           </div>
-          <div className="mt-3 flex justify-between items-center px-2">
-             <button 
-              onClick={() => setMessages([])} 
-              className="text-[10px] font-bold text-slate-400 hover:text-red-500 flex items-center gap-1 uppercase tracking-tighter transition-colors"
-             >
-                <Trash2 className="w-3 h-3" /> Clear History
-             </button>
-             <div className="text-[9px] font-black text-purple-300 uppercase tracking-widest">© 2025 GYAN AI ENGINE</div>
-          </div>
+          {!user && <p className="text-[10px] text-center mt-2 text-red-400 font-bold animate-bounce uppercase">Chat shuru karne ke liye upar se LOGIN karein</p>}
         </div>
       </Card>
     </div>
