@@ -1,7 +1,5 @@
 export const getLazyResponse = async (userPrompt: string): Promise<string> => {
-  // Aapki di hui Groq API Key
   const GROQ_KEY = "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"; 
-  
   const API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
   try {
@@ -12,22 +10,27 @@ export const getLazyResponse = async (userPrompt: string): Promise<string> => {
         "Content-Type": "application/json" 
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192", 
-        messages: [{ role: "user", content: userPrompt }]
+        // Model change kiya hai jo zyada stable hai
+        model: "llama-3.3-70b-versatile", 
+        messages: [{ role: "user", content: userPrompt }],
+        temperature: 0.7
       })
     });
 
     const data = await response.json();
     
-    // Agar Groq sahi jawab de
-    if (data.choices && data.choices[0].message) {
+    if (data.choices && data.choices.length > 0) {
       return data.choices[0].message.content;
-    } else {
-      console.error("Groq Error:", data);
-      return "AI ne jawab nahi diya, ho sakta hai limit khatam ho gayi ho.";
+    } 
+    
+    // Agar koi specific error aaye toh wo dikhayega
+    if (data.error) {
+      return "Groq Error: " + data.error.message;
     }
+
+    return "AI busy hai, ek second baad phir likho.";
+
   } catch (error) {
-    console.error("Network Error:", error);
-    return "Network slow hai, ek baar page refresh karke phir message bhejein!";
+    return "Net check karo bhai, connection nahi ban raha.";
   }
 };
