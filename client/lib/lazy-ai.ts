@@ -1,14 +1,14 @@
 // client/src/lib/lazy-ai.ts
 
 /**
- * Ye function user ke sawal ko Google Gemini AI ke paas bhejta hai
- * aur wahan se sahi jawab laakar deta hai.
+ * Gyan AI - Gemini Integration
+ * Ab ye AI 2+2 ka sahi jawab dega!
  */
 export const getLazyResponse = async (userPrompt: string): Promise<string> => {
-  // Aapke screenshot 130133.png se li gayi asli API Key
-  const API_KEY = "AIzaSyCJMPopWQ2bDQOcTRsnTM2ELgTyf4IWJAY"; 
+  // Aapki di hui Nayi Gemini API Key
+  const API_KEY = "AIzaSyCxcjUPvV3X_2ZB_zQQKQ4N1OBjiL6i_KA"; 
   
-  // Google Gemini API ka address
+  // Gemini 1.5 Flash API URL
   const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
   try {
@@ -20,25 +20,24 @@ export const getLazyResponse = async (userPrompt: string): Promise<string> => {
       body: JSON.stringify({
         contents: [
           {
-            parts: [{ text: userPrompt }] // Maharaj ka sawal yahan jata hai
+            parts: [{ text: userPrompt }]
           }
         ],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 1000,
+          maxOutputTokens: 800,
         }
       }),
     });
 
     const data = await response.json();
 
-    // Check karte hain ki kya AI ne jawab diya hai
+    // Check karte hain ki kya Gemini ne sahi result diya
     if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
       return data.candidates[0].content.parts[0].text;
     } else {
-      // Agar API key enable nahi hogi toh ye console mein error dikhayega
       console.error("Gemini API Error:", data);
-      return "Maharaj, lagta hai Google AI Studio mein jaakar 'Gemini API' ko enable karna padega tabhi main sahi jawab de paunga.";
+      return "Maharaj, lagta hai key abhi active ho rahi hai. Kripya 1 minute baad fir se koshish karein.";
     }
   } catch (error) {
     console.error("Network Error:", error);
