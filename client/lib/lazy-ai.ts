@@ -1,30 +1,40 @@
 // client/src/lib/lazy-ai.ts
 
 export const getLazyResponse = async (userPrompt: string): Promise<string> => {
-  // Aapki nayi API Key
-  const API_KEY = "AIzaSyDe8SnjB6Yo2VcufiLsYjDD-BBLRC3mIpU"; 
+  // Aapka naya Hugging Face Token
+  const HF_TOKEN = "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"; 
   
-  // URL ko v1 se v1beta kar diya hai taaki Flash model sahi se chale
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+  // Hum Mistral model use kar rahe hain jo bahut fast aur smart hai
+  const API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2";
 
   try {
     const response = await fetch(API_URL, {
+      headers: { 
+        Authorization: `Bearer ${HF_TOKEN}`,
+        "Content-Type": "application/json" 
+      },
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: userPrompt }] }]
+      body: JSON.stringify({ 
+        inputs: `[INST] ${userPrompt} [/INST]`,
+        parameters: { max_new_tokens: 250 }
       }),
     });
 
-    const data = await response.json();
+    const result = await response.json();
 
-    if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-      return data.candidates[0].content.parts[0].text;
-    } else {
-      console.error("API Error Detail:", data);
-      return "ERROR: " + (data.error?.message || "Kuch galat hua.");
+    // Hugging Face result ko array mein bhejta hai
+    if (Array.isArray(result) && result[0].generated_text) {
+      // Sirf AI ka answer nikalne ke liye split kiya hai
+      const fullText = result[0].generated_text;
+      const answer = fullText.split("[/INST]").pop()?.trim();
+      return answer || fullText;
+    } else if (result.error) {
+      return "ERROR: " + result.error;
     }
+    
+    return "Maharaj, thoda wait karein, model load ho raha hai.";
   } catch (error) {
-    return "Net slow hai Maharaj.";
+    console.error("HF Error:", error);
+    return "Network slow hai Maharaj!";
   }
 };
