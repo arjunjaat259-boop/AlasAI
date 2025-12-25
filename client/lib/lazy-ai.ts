@@ -1,10 +1,7 @@
 // client/src/lib/lazy-ai.ts
 
 export const getLazyResponse = async (userPrompt: string): Promise<string> => {
-  // Aapka naya Hugging Face Token
   const HF_TOKEN = "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"; 
-  
-  // Hum Mistral model use kar rahe hain jo bahut fast aur smart hai
   const API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2";
 
   try {
@@ -22,19 +19,23 @@ export const getLazyResponse = async (userPrompt: string): Promise<string> => {
 
     const result = await response.json();
 
-    // Hugging Face result ko array mein bhejta hai
+    // Agar model load ho raha hai (Hugging Face ki khas condition)
+    if (result.error && result.estimated_time) {
+      return `Maharaj, AI taiyar ho raha hai. Takriban ${Math.round(result.estimated_time)} seconds baad fir se message bhejiye.`;
+    }
+
     if (Array.isArray(result) && result[0].generated_text) {
-      // Sirf AI ka answer nikalne ke liye split kiya hai
       const fullText = result[0].generated_text;
-      const answer = fullText.split("[/INST]").pop()?.trim();
-      return answer || fullText;
+      return fullText.split("[/INST]").pop()?.trim() || fullText;
     } else if (result.error) {
-      return "ERROR: " + result.error;
+      return "AI Studio Error: " + result.error;
     }
     
-    return "Maharaj, thoda wait karein, model load ho raha hai.";
-  } catch (error) {
+    return "Jawab nahi mila, dubara try karein.";
+
+  } catch (error: any) {
+    // Ab ye "Network slow" nahi bolega, asli wajah batayega
     console.error("HF Error:", error);
-    return "Network slow hai Maharaj!";
+    return "Asli Error: " + error.message;
   }
 };
