@@ -1,11 +1,7 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getAuth, GoogleAuthProvider, signInWithRedirect, signOut } from "firebase/auth";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Aapka asli config jo screenshots mein dikh raha hai
 const firebaseConfig = {
   apiKey: "AIzaSyCJMPopWQ2bDQOcTRsnTM2ELgTyf4IWJAY",
   authDomain: "gyan-ai-87b44.firebaseapp.com",
@@ -16,6 +12,18 @@ const firebaseConfig = {
   measurementId: "G-CY297XBF7M"
 };
 
-// Initialize Firebase
+// Firebase initialize karein
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+export const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+// Taaki har baar account select karne ka mauka mile
+provider.setCustomParameters({
+  prompt: 'select_account'
+});
+
+// Redirect mode: Ye sabse best hai, isme popup block nahi hota
+export const signInWithGoogle = () => signInWithRedirect(auth, provider);
+
+// Logout function
+export const logout = () => signOut(auth);
