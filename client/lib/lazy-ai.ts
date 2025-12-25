@@ -1,36 +1,33 @@
 export const getLazyResponse = async (userPrompt: string): Promise<string> => {
-  const HF_TOKEN = "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"; 
-  // Humne model badal kar 'google/gemma-2b-it' kar diya hai, ye light model hai
-  const API_URL = "https://api-inference.huggingface.co/models/google/gemma-1.1-2b-it";
+  // Aapki di hui Groq API Key
+  const GROQ_KEY = "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"; 
+  
+  const API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
   try {
     const response = await fetch(API_URL, {
+      method: "POST",
       headers: { 
-        "Authorization": `Bearer ${HF_TOKEN}`,
+        "Authorization": `Bearer ${GROQ_KEY}`,
         "Content-Type": "application/json" 
       },
-      method: "POST",
-      body: JSON.stringify({ 
-        inputs: userPrompt,
-        parameters: { max_new_tokens: 150 }
-      }),
+      body: JSON.stringify({
+        model: "llama3-8b-8192", 
+        messages: [{ role: "user", content: userPrompt }]
+      })
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      return "Server Error: " + (errorData.error || response.statusText);
-    }
-
-    const result = await response.json();
-
-    if (Array.isArray(result) && result[0].generated_text) {
-      return result[0].generated_text;
-    }
+    const data = await response.json();
     
-    return "Jawab nahi mila, dubara try karein.";
-
-  } catch (error: any) {
-    // Agar abhi bhi 'Failed to fetch' aaye, toh aapka network block kar raha hai
-    return "Abhi bhi wahi problem: " + error.message;
+    // Agar Groq sahi jawab de
+    if (data.choices && data.choices[0].message) {
+      return data.choices[0].message.content;
+    } else {
+      console.error("Groq Error:", data);
+      return "AI ne jawab nahi diya, ho sakta hai limit khatam ho gayi ho.";
+    }
+  } catch (error) {
+    console.error("Network Error:", error);
+    return "Network slow hai, ek baar page refresh karke phir message bhejein!";
   }
 };
