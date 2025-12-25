@@ -1,58 +1,30 @@
-/**
- * TTS Service for Lazy AI
- * Fallback to Web Speech API if no API key is provided
- */
-
-export async function speak(text: string, voiceId?: string, apiKey?: string) {
-  if (apiKey && voiceId) {
-    try {
-      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'xi-api-key': apiKey,
-        },
-        body: JSON.stringify({
-          text,
-          model_id: 'eleven_multilingual_v2',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5,
-          },
-        }),
-      });
-
-      if (response.ok) {
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        audio.play();
-        return;
-      }
-    } catch (error) {
-      console.error('ElevenLabs TTS failed, falling back to Web Speech API', error);
-    }
+export const speak = (text: string, voiceType: string = "Thrill", language: string = "hi-IN") => {
+  if (!window.speechSynthesis) {
+    console.error("Speech synthesis not supported");
+    return;
   }
 
-  // Fallback to Web Speech API
-  if ('speechSynthesis' in window) {
-    const utterance = new SpeechSynthesisUtterance(text);
-    // Try to find a funny/sarcastic sounding voice (higher pitch)
-    const voices = window.speechSynthesis.getVoices();
+  // Pehle se chal rahi awaaz ko band karein
+  window.speechSynthesis.cancel();
 
-    // Preference: Indian English voice for the Hinglish vibe
-    const preferredVoice = voices.find(v => v.lang.includes('en-IN')) ||
-                           voices.find(v => v.lang.includes('en-GB')) ||
-                           voices[0];
+  const utterance = new SpeechSynthesisUtterance(text);
+  
+  // Shuddh Hindi ke liye language set karein
+  utterance.lang = "hi-IN"; 
+  utterance.rate = 0.9; // Thodi dheere taaki 'Maharaj' wali gambhirta lage
+  utterance.pitch = 1.0;
 
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
-    }
+  // Best Hindi voice dhundne ka logic
+  const voices = window.speechSynthesis.getVoices();
+  
+  // Priority: Hindi voices (Google ya Microsoft)
+  const hindiVoice = voices.find(v => 
+    v.lang.includes("hi") || v.name.includes("Hindi") || v.name.includes("Google हिन्दी")
+  );
 
-    utterance.pitch = 0.8; // Deep, bored voice for sarcasm
-    utterance.rate = 0.9;  // Slightly slower for lazy effect
-    window.speechSynthesis.speak(utterance);
-  } else {
-    console.error('Web Speech API not supported');
+  if (hindiVoice) {
+    utterance.voice = hindiVoice;
   }
-}
+
+  window.speechSynthesis.speak(utterance);
+};
