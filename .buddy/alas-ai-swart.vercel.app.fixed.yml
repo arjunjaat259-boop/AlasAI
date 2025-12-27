@@ -1,8 +1,0 @@
-- pipeline: alas-ai-swart-vercel-app-yml
-  name: alas-ai-swart.vercel.app
-  refs:
-  - refs/heads/main
-  fail_on_prepare_env_warning: true
-  events:
-  - type: WEBHOOK
-  - type: PUSH
